@@ -44,11 +44,11 @@ using Microsoft.Extensions.Configuration;
 
 
 var builder = WebApplication.CreateBuilder(args);
-ConfigurationManager configuration = builder.Configuration;
+ConfigurationManager configuration = builder.Configuration; // allows both to access and to set up the config
 // Add services to the container.
 //builder.Services.AddRazorPages();
 builder.Services.AddHttpClient<IProductService, ProductService>();
-SD.ProductAPIBase = configuration.GetConnectionString("ProductAPI");
+SD.ProductAPIBase = configuration.GetConnectionString("ServiceUrl_ProductAPI");
 builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddControllersWithViews();

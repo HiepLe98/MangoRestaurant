@@ -61,10 +61,5 @@ namespace Mango.Services.ProductAPI.Repository
             List<Product> products = await _db.Products.ToListAsync();
             return _mapper.Map<List<ProductDto>>(products);
         }
-
-        public Task<ProductDto> UpdateProduct(ProductDto productDto)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
