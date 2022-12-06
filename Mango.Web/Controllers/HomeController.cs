@@ -1,21 +1,47 @@
 ﻿using Mango.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authentication;
+using Mango.Web.Services.IServices;
+using Newtonsoft.Json;
 
 namespace Mango.Web.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IProductService _productService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IProductService productService)
         {
             _logger = logger;
+            _productService = productService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            List<ProductDto> list = new();
+            var response = await _productService.GetAllProductsAsync<ResponseDto>(accessToken);
+            if (response != null && response.IsSuccess)
+            {
+                list = JsonConvert.DeserializeObject<List<ProductDto>>(Convert.ToString(response.Result));
+            }
+            return View(list);
+        }
+        [Authorize]
+        public async Task<IActionResult> Details(int productId)
+        {
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+
+            ProductDto product = new();
+            var response = await _productService.GetProductByIdAsync<ResponseDto>(productId, accessToken);
+            if (response != null && response.IsSuccess)
+            {
+                product = JsonConvert.DeserializeObject<ProductDto>(Convert.ToString(response.Result));
+            }
+            return View(product);
         }
 
         public IActionResult Privacy()
@@ -27,6 +53,17 @@ namespace Mango.Web.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Login()
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult Logout()
+        {
+            return SignOut("Cookies", "oidc");
         }
     }
 }
